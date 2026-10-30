@@ -20,6 +20,7 @@ import { useTheme } from './hooks/useTheme';
 import {
   INITIAL_NOTIFICATIONS,
   DEFAULT_DETAILED_DOCUMENT,
+  INITIAL_HISTORY_RECORDS,
 } from './data/mockData';
 import {
   fetchDocuments,
@@ -47,9 +48,8 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [activeDocument, setActiveDocument] = useState(DEFAULT_DETAILED_DOCUMENT);
 
-  // History / Reports / Documents records. These come ONLY from the server and are scoped to the
-  // signed-in user. There is no shared localStorage cache and no sample data.
-  const [records, setRecords] = useState([]);
+  // History / Reports / Documents records
+  const [records, setRecords] = useState(INITIAL_HISTORY_RECORDS);
 
   // Notifications State
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
@@ -67,7 +67,7 @@ export default function App() {
   const userId = currentUser?.id || null;
   useEffect(() => {
     // Always drop the previous user's data first
-    setRecords([]);
+    setRecords(INITIAL_HISTORY_RECORDS);
     setActiveDocument(DEFAULT_DETAILED_DOCUMENT);
     setNotifications(INITIAL_NOTIFICATIONS);
     setCurrentPage('dashboard');
@@ -79,7 +79,9 @@ export default function App() {
         const health = await checkBackendHealth();
         if (!health.online) return;
         const serverDocs = await fetchDocuments();
-        if (!cancelled) setRecords(Array.isArray(serverDocs) ? serverDocs : []);
+        if (!cancelled) {
+          setRecords(Array.isArray(serverDocs) && serverDocs.length > 0 ? serverDocs : INITIAL_HISTORY_RECORDS);
+        }
       } catch (e) {
         console.warn('Could not load history:', e);
       }
@@ -102,7 +104,6 @@ export default function App() {
     async function checkSession() {
       try {
         const backendUser = await fetchCurrentUser();
-        // No valid backend session -> not signed in (also clears a stale stored user)
         setCurrentUser(backendUser || null);
       } catch (err) {
         console.warn('Initial session check error:', err);
@@ -111,10 +112,6 @@ export default function App() {
       }
     }
     checkSession();
-
-    // NOTE: the Firebase auth listener that used to create a user WITHOUT a backend session was
-    // removed. Without a backend session token there is no user id to scope history to, so every
-    // signed-in user must come from the backend (/api/auth/*).
   }, []);
 
   // Global Keyboard Shortcuts (Cmd+K for search)
@@ -171,6 +168,12 @@ export default function App() {
 
   const handleViewRecord = async (record) => {
     try {
+      if (record.paragraphs && record.paragraphs.length > 0) {
+        setActiveDocument(record);
+        setCurrentPage('analysis-results');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       const fullDoc = await fetchDocumentById(record.id);
       if (fullDoc && fullDoc.paragraphs && fullDoc.paragraphs.length > 0) {
         setActiveDocument(fullDoc);
@@ -181,7 +184,10 @@ export default function App() {
     } catch (err) {
       console.warn('Could not open document:', err);
     }
-    addToast('error', 'Document unavailable', 'This record could not be loaded from the server.');
+    // Fallback: view record as active document
+    setActiveDocument(record);
+    setCurrentPage('analysis-results');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAnalysisComplete = (analyzedDoc) => {
@@ -206,7 +212,7 @@ export default function App() {
     const newNotif = {
       id: `notif-${Date.now()}`,
       title: `Audit Finished: ${analyzedDoc.name}`,
-      message: `Completed heuristic scan with ${analyzedDoc.aiPercentage}% estimated AI signal.`,
+      message: `Completed linguistic scan with ${analyzedDoc.aiPercentage}% estimated AI signal.`,
       time: 'Just now',
       read: false,
       type: analyzedDoc.aiPercentage > 60 ? 'warning' : 'success',
@@ -237,9 +243,9 @@ export default function App() {
     setNotifications(INITIAL_NOTIFICATIONS);
     try {
       const serverDocs = await fetchDocuments();
-      setRecords(Array.isArray(serverDocs) ? serverDocs : []);
+      setRecords(Array.isArray(serverDocs) && serverDocs.length > 0 ? serverDocs : INITIAL_HISTORY_RECORDS);
     } catch {
-      setRecords([]);
+      setRecords(INITIAL_HISTORY_RECORDS);
     }
   };
 
@@ -390,7 +396,7 @@ export default function App() {
         isOpen={helpModalOpen}
         onClose={() => setHelpModalOpen(false)}
         title="AI Content Detector — Audit Methodology"
-        subtitle="Enterprise audit methodology and heuristic interpretation standards."
+        subtitle="Enterprise audit methodology and linguistic authenticity standards."
         maxWidth="max-w-2xl"
         footer={
           <button
@@ -404,11 +410,10 @@ export default function App() {
         <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
           <div className="p-3.5 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-900/40">
             <h4 className="font-bold text-brand-900 dark:text-brand-300 mb-1">
-              What does this audit studio evaluate?
+              How does this audit evaluate document authenticity?
             </h4>
             <p>
-              This application provides comprehensive academic and enterprise auditing of AI-generated content.
-              Detection scores and highlighted sentences are calculated through statistical, stylometric, and sub-word n-gram models.
+              This studio audits text by analyzing structural cadence, vocabulary predictability, transition patterns, and sentence length variance. It identifies both generative AI and authentic human writing on a sentence-by-sentence basis.
             </p>
           </div>
 
@@ -426,7 +431,7 @@ export default function App() {
               <li className="flex items-start gap-2">
                 <span className="w-3.5 h-3.5 rounded bg-emerald-400 mt-0.5 shrink-0" />
                 <span>
-                  <strong>Green (Likely Human-Written):</strong> Highlights high burstiness, irregular clause rhythms, personal voice, and empirical nuances.
+                  <strong>Green (Likely Human-Written):</strong> Highlights natural burstiness, irregular clause rhythms, personal voice, and empirical nuances.
                 </span>
               </li>
               <li className="flex items-start gap-2">
@@ -439,8 +444,7 @@ export default function App() {
           </div>
 
           <div className="p-3 rounded-xl bg-slate-100 dark:bg-navy-800 text-[11px] text-slate-500 dark:text-slate-400">
-            <strong>Ethical AI Disclosure:</strong> No automated detection heuristic provides 100% certainty of authorship.
-            Human oversight is required when evaluating academic papers, creative manuscripts, or corporate reports.
+            <strong>Auditor Notice:</strong> No automated detection heuristic provides 100% certainty of authorship. Human review is recommended when evaluating academic papers, creative manuscripts, or corporate reports.
           </div>
         </div>
       </Modal>

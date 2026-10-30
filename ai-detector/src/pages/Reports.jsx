@@ -21,6 +21,7 @@ import {
   downloadJsonReport,
   printFormattedReport,
 } from '../utils/reportDownload';
+import { fetchDocumentById } from '../api/client';
 import CreativeAuditReport from '../components/CreativeAuditReport';
 
 export default function Reports({
@@ -32,6 +33,7 @@ export default function Reports({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedReportForModal, setSelectedReportForModal] = useState(null);
+  const [loadingReportId, setLoadingReportId] = useState(null);
 
   const filteredReports = useMemo(() => {
     return records.filter((r) => {
@@ -60,6 +62,28 @@ export default function Reports({
     }
   };
 
+  const handleOpenCreativeReport = async (report) => {
+    // If the record already contains full text paragraphs, open immediately
+    if (Array.isArray(report.paragraphs) && report.paragraphs.length > 0) {
+      setSelectedReportForModal(report);
+      return;
+    }
+
+    setLoadingReportId(report.id);
+    try {
+      const fullDoc = await fetchDocumentById(report.id);
+      if (fullDoc && Array.isArray(fullDoc.paragraphs) && fullDoc.paragraphs.length > 0) {
+        setSelectedReportForModal(fullDoc);
+        setLoadingReportId(null);
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not load full document text from server:', err);
+    }
+    setLoadingReportId(null);
+    setSelectedReportForModal(report);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Page Title & Intro */}
@@ -72,7 +96,7 @@ export default function Reports({
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Access forensic audit trails, highlighted AI content reports, and RAID benchmark datasets.
+            Access forensic audit trails, highlighted AI content reports, and multi-model linguistic analyses.
           </p>
         </div>
 
@@ -122,7 +146,7 @@ export default function Reports({
           <div className="col-span-full py-16 text-center bg-white dark:bg-navy-900 rounded-3xl border border-dashed border-slate-200 dark:border-navy-800 text-slate-400">
             <FileSpreadsheet className="w-10 h-10 mx-auto text-slate-300 dark:text-navy-700 mb-2" />
             <p className="font-semibold text-slate-600 dark:text-slate-400">No reports found</p>
-            <p className="text-xs text-slate-400 mt-1">Try clearing your filters or upload a new file</p>
+            <p className="text-xs text-slate-400 mt-1">Try clearing your filters or upload a new file in New Analysis</p>
           </div>
         ) : (
           filteredReports.map((report) => (
@@ -185,11 +209,16 @@ export default function Reports({
               {/* Actions Footer */}
               <div className="mt-5 pt-4 border-t border-slate-100 dark:border-navy-800/80 flex items-center justify-between gap-2">
                 <button
-                  onClick={() => setSelectedReportForModal(report)}
-                  className="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/60 dark:hover:bg-brand-900/60 text-brand-600 dark:text-brand-300 font-bold text-xs transition-colors flex items-center gap-1"
+                  onClick={() => handleOpenCreativeReport(report)}
+                  disabled={loadingReportId === report.id}
+                  className="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/60 dark:hover:bg-brand-900/60 text-brand-600 dark:text-brand-300 font-bold text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  <FileCheck className="w-3.5 h-3.5" />
-                  <span>View Creative Report</span>
+                  {loadingReportId === report.id ? (
+                    <span className="w-3.5 h-3.5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <FileCheck className="w-3.5 h-3.5" />
+                  )}
+                  <span>{loadingReportId === report.id ? 'Loading...' : 'View Creative Report'}</span>
                 </button>
 
                 <div className="flex items-center gap-1">

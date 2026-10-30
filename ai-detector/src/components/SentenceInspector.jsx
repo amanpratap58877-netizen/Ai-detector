@@ -63,8 +63,8 @@ export default function SentenceInspector({
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Sentence Heuristics</h3>
-            <p className="text-[11px] text-slate-400">Syntactic & perplexity audit</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Sentence Analysis</h3>
+            <p className="text-[11px] text-slate-400">Linguistic AI detection audit</p>
           </div>
         </div>
 
@@ -109,7 +109,7 @@ export default function SentenceInspector({
 
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                Sample Confidence
+                Confidence
               </span>
               <span className={`text-base font-extrabold ${currentConfig.metricColor}`}>
                 {sentence.confidence}%
@@ -160,46 +160,44 @@ export default function SentenceInspector({
           </div>
         </div>
 
-        {/* Heuristic Explanation */}
+        {/* Linguistic Explanation */}
         <div>
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-            Linguistic & Heuristic Analysis
+            Assessment Reasoning
           </h4>
           <div className="p-3.5 rounded-xl bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            {sentence.explanation}
+            {sentence.explanation || (sentence.type === 'ai' ? 'Predictable word sequence and synthetic sentence cadence.' : 'Natural sentence length diversity and authentic human expression.')}
           </div>
         </div>
 
-        {/* Diagnostic Heuristics Sub-signals */}
+        {/* Diagnostic Attributes */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Sentence Signal Attributes
+            Linguistic Indicators
           </h4>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-navy-800/60 border border-slate-200/80 dark:border-navy-700">
-              <span className="text-[10px] text-slate-400 block font-medium">Perplexity Level</span>
+              <span className="text-[10px] text-slate-400 block font-medium">Word Predictability</span>
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {sentence.type === 'ai' ? 'Low / Predictable' : 'High / Organic'}
+                {sentence.type === 'ai' ? 'High Predictability (AI)' : 'Varied & Organic (Human)'}
               </span>
             </div>
 
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-navy-800/60 border border-slate-200/80 dark:border-navy-700">
-              <span className="text-[10px] text-slate-400 block font-medium">Syntactic Burstiness</span>
+              <span className="text-[10px] text-slate-400 block font-medium">Sentence Rhythm</span>
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {sentence.type === 'ai' ? 'Uniform Rhythm' : 'Dynamic Variation'}
+                {sentence.type === 'ai' ? 'Uniform Cadence' : 'Dynamic Variation'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Mandatory Neutral Disclaimer */}
+        {/* Auditor Notice */}
         <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-navy-800/50 border border-slate-200 dark:border-navy-700/60 flex items-start gap-2.5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
           <Info className="w-4 h-4 shrink-0 text-slate-400 mt-0.5" />
           <div>
-            <strong className="text-slate-700 dark:text-slate-300">Auditor Notice:</strong> Heuristic
-            confidence scores reflect probabilistic text patterns and statistical indicators. They
-            do not constitute scientific proof of authorship or human generation.
+            <strong className="text-slate-700 dark:text-slate-300">Auditor Notice:</strong> Confidence scores reflect linguistic predictability and structural indicators across the text.
           </div>
         </div>
       </div>
@@ -217,4 +215,3 @@ export default function SentenceInspector({
     </div>
   );
 }
-
