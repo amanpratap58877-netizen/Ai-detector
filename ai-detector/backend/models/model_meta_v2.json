@@ -1,0 +1,75 @@
+{
+  "status": "trained_v2",
+  "trained_at": "2026-10-30T15:59:27",
+  "sklearn_version": "1.9.1",
+  "sampleCount": 6090,
+  "domainsCount": 5,
+  "generatorsCount": 12,
+  "evaluation": "GroupKFold on held-out domains and unseen generators (zero data leakage)",
+  "metrics": {
+    "accuracy": 64.01,
+    "rocAuc": 70.41,
+    "f1Score": 70.64,
+    "humanFalsePositiveRate": 58.59,
+    "aiFalseNegativeRate": 13.4,
+    "perModel": {
+      "ngram_lexical": {
+        "accuracy": 0.6517,
+        "roc_auc": 0.7501,
+        "f1_score": 0.715,
+        "false_positive_rate_on_human": 0.5704,
+        "false_negative_rate_on_ai": 0.1261
+      },
+      "stylometric": {
+        "accuracy": 0.5938,
+        "roc_auc": 0.6094,
+        "f1_score": 0.6461,
+        "false_positive_rate_on_human": 0.554,
+        "false_negative_rate_on_ai": 0.2585
+      },
+      "sequence_context": {
+        "accuracy": 0.5542,
+        "roc_auc": 0.5567,
+        "f1_score": 0.5668,
+        "false_positive_rate_on_human": 0.4749,
+        "false_negative_rate_on_ai": 0.4167
+      }
+    }
+  },
+  "decision": {
+    "ai_doc_prob": 0.842,
+    "human_doc_prob": 0.369,
+    "strong_ai_prob": 0.95,
+    "strong_human_prob": 0.219,
+    "sentence_ai": 0.762,
+    "sentence_human": 0.449,
+    "blend_min": 0.25,
+    "min_words_confident": 100
+  },
+  "comparison": [
+    {
+      "approach": "Sub-Word Char (3-5) + Word (1-2) N-Gram Model",
+      "role": "Model 1: Topic-Agnostic Lexical Classifier",
+      "accuracy": "65.2% (held-out)",
+      "strengths": "AUC 0.750; human FPR 57.0%"
+    },
+    {
+      "approach": "28-Dimensional Deep Stylometrics & Burstiness",
+      "role": "Model 2: Structural & Stylometric Classifier",
+      "accuracy": "59.4% (held-out)",
+      "strengths": "Evaluates burstiness CV, cliches, passive density, and entropy (AUC 0.609)"
+    },
+    {
+      "approach": "18-Dimensional Sequence Context & Transition Dynamics",
+      "role": "Model 3: Sequential Cohesion & Cadence Model",
+      "accuracy": "55.4% (held-out)",
+      "strengths": "Measures adjacent length deltas, Markov transition entropy, and opener repetition (AUC 0.557)"
+    },
+    {
+      "approach": "Calibrated 3-Model Soft-Voting Ensemble",
+      "role": "Production Meta-Model",
+      "accuracy": "64.0% (held-out)",
+      "strengths": "AUC 0.704; human FPR 58.6%"
+    }
+  ]
+}
